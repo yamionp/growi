@@ -15,6 +15,39 @@ module.exports = function(crowi, app) {
 
   actions.api = api;
 
+
+  api.view = function(req, res) {
+    const id = req.params.id;
+
+    Attachment.findById(id)
+      .then(function(data) {
+
+        Attachment.findDeliveryFile(data)
+          .then(fileName => {
+
+            // local
+            if (fileName.match(/^\/uploads/)) {
+              return res.redirect(fileName);
+            }
+            // aws
+            else {
+              const options = {
+                headers: {
+                  'Content-Type': data.fileFormat,
+                  'Content-Disposition': `inline;filename*=UTF-8''${encodeURIComponent(data.originalName)}`,
+                }
+              };
+              return res.sendFile(fileName, options);
+            }
+          });
+      })
+      // not found
+      .catch((err) => {
+        logger.error('download err', err);
+        return res.status(404).sendFile(crowi.publicDir + '/images/file-not-found.png');
+      });
+  };
+
   api.download = function(req, res) {
     const id = req.params.id;
 
