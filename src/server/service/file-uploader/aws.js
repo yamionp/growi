@@ -68,7 +68,6 @@ module.exports = function(crowi) {
     params.ContentType = contentType;
     params.Key = filePath;
     params.Body = fileStream;
-    params.ACL = 'public-read';
 
     return new Promise(function(resolve, reject) {
       s3.putObject(params, function(err, data) {
@@ -97,18 +96,16 @@ module.exports = function(crowi) {
         return resolve(cacheFile);
       }
 
-      var loader = require('https');
+      const s3 = S3Factory();
+      const awsConfig = getAwsConfig();
 
+      const params = {
+        Bucket: awsConfig.bucket,
+        Key: filePath,
+      };
       var fileStream = fs.createWriteStream(cacheFile);
-      var fileUrl = lib.generateUrl(filePath);
-      debug('Load attachement file into local cache file', fileUrl, cacheFile);
-      loader.get(fileUrl, function(response) {
-        response.pipe(fileStream, { end: false });
-        response.on('end', () => {
-          fileStream.end();
-          resolve(cacheFile);
-        });
-      });
+      s3.getObject(params).createReadStream().pipe(fileStream);
+      resolve(cacheFile);
     });
   };
 
