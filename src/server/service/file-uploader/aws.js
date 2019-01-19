@@ -104,8 +104,9 @@ module.exports = function(crowi) {
         Key: filePath,
       };
       var fileStream = fs.createWriteStream(cacheFile);
-      s3.getObject(params).createReadStream().pipe(fileStream);
-      resolve(cacheFile);
+      var source = s3.getObject(params).createReadStream();
+      source.pipe(fileStream);
+      source.on('end', () => resolve(cacheFile));
     });
   };
 
