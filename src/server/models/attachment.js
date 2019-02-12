@@ -34,8 +34,9 @@ module.exports = function(crowi) {
     //   1. this is buggy (doesn't work on Win)
     //   2. ensure backward compatibility of data
 
-    // return `/files/${this._id}`;
-    return fileUploader.generateUrl(this.filePath);
+    // crowi の記事の後方互換性のため
+    return `/files/${this._id}`;
+    // return fileUploader.generateUrl(this.filePath);
   });
 
   attachmentSchema.statics.findById = function(id) {
